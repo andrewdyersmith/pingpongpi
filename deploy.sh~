@@ -1,0 +1,5 @@
+#!/bin/bash
+HOST=$1
+
+rsync -avzh ./{daemon,web} pi@$HOST:/home/pi/pingpongpi/
+#rsync -avzh ./daemon pi@$HOST:./daemon /home/pi/pingpongpi/
