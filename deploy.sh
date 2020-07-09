@@ -1,5 +1,5 @@
 #!/bin/bash
-HOST=$1
+. "$(dirname "$0")"/credentials
 
-rsync -avzh ./{daemon,web} pi@$HOST:/home/pi/pingpongpi/
+rsync -avzh ./{daemon,web} pi@$HOSTNAME:/home/pi/pingpongpi/
 
