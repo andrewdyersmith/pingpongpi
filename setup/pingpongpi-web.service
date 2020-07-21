@@ -3,9 +3,8 @@ Description=Ping Pong Pi web application
 After=network.target
 
 [Service]
-User=ubuntu
-WorkingDirectory=/home/pi/pingpong/web
-ExecStart=gunicorn -b localhost:8000 -w 4 pingpongpi:app
+WorkingDirectory=/home/pi/pingpongpi/web
+ExecStart=gunicorn3 -b 0.0.0.0:8000 -w 4 pingpongpiweb:app
 Restart=always
 
 [Install]

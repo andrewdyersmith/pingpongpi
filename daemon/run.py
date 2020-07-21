@@ -4,7 +4,9 @@ import time
 import board
 import neopixel
 from PIL import Image
+from multiprocessing import Process,Queue
 from multiprocessing.connection import Listener
+
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
@@ -123,24 +125,39 @@ def rainbow_cycle(wait):
     pixels.show()
     time.sleep(wait)
 
-def setup_ipc():
+message_queue = Queue()
+message_process = Process()
+
+def message_loop(message_queue):
   address = ('localhost', 6000)     # family is deduced to be 'AF_INET'
-  listener = Listener(address, authkey='secret password')
+  listener = Listener(address, authkey=b'secret password')
   conn = listener.accept()
-  print 'connection accepted from', listener.last_accepted
-  return (listener, conn)
+  print('connection accepted from', listener.last_accepted)
+  while True:
+    msg = conn.recv()
+    if msg:
+      message_queue.put(msg)
+
+def setup_ipc():
+  global message_process
+  global message_queue
+  message_process = Process(target=message_loop, args=(message_queue,))
+  message_process.start()
 
 MODE_RAINBOW = "rainbow"
 MODE_GIF = "gif"
 
 def main():
+  global message_queue
+  global message_process
+  
   screen = Screen(10,15)
   rainbow = Rainbow(1.0)
-  gifplayer = GifPlayer()
+  #gifplayer = GifPlayer()
   start_time = time.time()
   mode = MODE_RAINBOW
   
-  listener, conn = setup_ipc()
+  setup_ipc()
   while True:
     t = time.time() - start_time
     if mode==MODE_RAINBOW:
@@ -148,15 +165,17 @@ def main():
     elif mode==MODE_GIF:
       gifplayer.update(screen, t)
     screen.show()
-    msg = conn.recv()
     # do something with msg
-    if msg[0] == 'close':
-      conn.close()
-      break
-    if msg[0]==="mode"):
-      if len(msg)>1:
-        mode = msg[1]
-  listener.close()
+    if not message_queue.empty():
+      msg = message_queue.get()
+      if msg:
+        if msg[0] == 'close':
+          conn.close()
+          break
+        if msg[0]=="mode":
+          if len(msg)>1:
+            mode = msg[1]
+  message_process.join()
 
     
 if __name__ == "__main__":
