@@ -4,6 +4,7 @@ import time
 import board
 import neopixel
 from PIL import Image
+from multiprocessing.connection import Listener
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
@@ -122,13 +123,41 @@ def rainbow_cycle(wait):
     pixels.show()
     time.sleep(wait)
 
+def setup_ipc():
+  address = ('localhost', 6000)     # family is deduced to be 'AF_INET'
+  listener = Listener(address, authkey='secret password')
+  conn = listener.accept()
+  print 'connection accepted from', listener.last_accepted
+  return (listener, conn)
+
+MODE_RAINBOW = "rainbow"
+MODE_GIF = "gif"
+
 def main():
   screen = Screen(10,15)
   rainbow = Rainbow(1.0)
+  gifplayer = GifPlayer()
   start_time = time.time()
+  mode = MODE_RAINBOW
+  
+  listener, conn = setup_ipc()
   while True:
-    rainbow.update(screen,time.time()-start_time)
+    t = time.time() - start_time
+    if mode==MODE_RAINBOW:
+      rainbow.update(screen, t)
+    elif mode==MODE_GIF:
+      gifplayer.update(screen, t)
     screen.show()
+    msg = conn.recv()
+    # do something with msg
+    if msg[0] == 'close':
+      conn.close()
+      break
+    if msg[0]==="mode"):
+      if len(msg)>1:
+        mode = msg[1]
+  listener.close()
+
     
 if __name__ == "__main__":
   main()
