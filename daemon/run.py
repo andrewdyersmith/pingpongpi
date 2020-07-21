@@ -27,7 +27,7 @@ class Screen:
     self.num_pixels = width * height
 
     self.pixels = neopixel.NeoPixel(
-  pixel_pin, self.num_pixels, brightness=0.2, auto_write=False, pixel_order=ORDER
+  pixel_pin, self.num_pixels, brightness=0.7, auto_write=False, pixel_order=ORDER
 )
 
 
