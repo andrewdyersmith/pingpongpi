@@ -107,9 +107,9 @@ class TextPlayer:
     self.font_sheet = Image.open("../assets/font.png")
 
   def update(self, screen, time):
+    screen.clear()
     pos = (time / 0.5) % len(self.text)
     offset = -8 * pos
-    print(offset)
     for i in range(0, len(self.text)):
       char_to_print = self.text[i]
       self.print_char(screen, char_to_print, offset + i*8, 0)
