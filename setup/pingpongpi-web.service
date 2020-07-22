@@ -1,10 +1,11 @@
 [Unit]
 Description=Ping Pong Pi web application
 After=network.target
+Requires=pingpongpi.service
 
 [Service]
 WorkingDirectory=/home/pi/pingpongpi/web
-ExecStart=gunicorn3 -b 0.0.0.0:8000 -w 4 pingpongpiweb:app
+ExecStart=gunicorn3 -b 0.0.0.0 -w 1 pingpongpiweb:app --log-syslog
 Restart=always
 
 [Install]

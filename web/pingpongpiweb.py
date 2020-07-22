@@ -1,34 +1,58 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, appcontext_tearing_down
 from multiprocessing import Process, Queue
 from multiprocessing.connection import Client
+import atexit
+import time
+import zmq
 
 app = Flask(__name__)
+
+
+
 
 @app.route('/')
 def index():
   return render_template('index.html')
 
-@app.route('/mode/<name>')
+MODE="mode"
+
+@app.route('/mode/<name>', methods=['POST'])
 def mode(name):
-  global message_queue
   message_queue.put([MODE,name])
   return "\"OK\""
 
-message_queue = Queue
+message_queue = Queue()
 message_process = None
 
 def message_loop(message_queue):
-  address = ('localhost', 6000)
-  conn = Client(address, authkey=b'secret password')
-  print('connection made to', listener.last_accepted)
+  print("Starting message loop")
+  context = zmq.Context()
   while True:
-    msg = message_queue.get()
-    conn.send(msg)
+    try:
+      socket = context.socket(zmq.REQ)
+      socket.connect("tcp://localhost:5555")
+      print("Connected to daemon")
+      while True:
+        msg = message_queue.get()
+        print("Sending ", msg)
+        socket.send_json(msg)
+        socket.recv()
+    except Exception as ex:
+      print(ex)
+    time.sleep(5)
+
+
+def stop_message_loop():
+  print("Terminating")
+  if message_process:
+    message_process.terminate()
+
+atexit.register(stop_message_loop)
+
     
 @app.before_first_request
 def setup_ipc():
   global message_process
-  global message_queue
   message_process = Process(target=message_loop, args=(message_queue,))
   message_process.start()
 

@@ -6,7 +6,7 @@ import neopixel
 from PIL import Image
 from multiprocessing import Process,Queue
 from multiprocessing.connection import Listener
-
+import zmq
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
@@ -15,7 +15,7 @@ pixel_pin = board.D18
 
 # The order of the pixel colors - RGB or GRB. Some NeoPixels have red and green reversed!
 # For RGBW NeoPixels, simply change the ORDER to RGBW or GRBW.
-ORDER = neopixel.GRB
+ORDER = neopixel.RGB
 
 
 WIDTH=15
@@ -47,16 +47,20 @@ class Screen:
     /
     \____________________
     """
-
+    if x < 0 or y < 0 or x>self.width or y>self.height:
+      # don't write outside bounds
+      return
+    
     # work out the row direction
-    if y % 2==1:
+    if y % 2==0:
       # left to right
       self.pixels[int(x + (y * self.width))] = (r,g,b)
     else:
       # right to left
       self.pixels[int((y+1) * self.width  - (x+1))] = (r,g,b)
 
-
+  def clear(self):
+    self.pixels.fill(000)
 
 class Rainbow:
   def __init__(self, frequency):
@@ -76,7 +80,7 @@ class GifPlayer:
   def __init__(self, file, time_per_frame):
     self.file=file
     self.time_per_frame=time_per_frame
-    self.image = Image.open(file).convert('RGB')
+    self.image = Image.open(file)
     i=1
     try:
       while 1:
@@ -88,56 +92,64 @@ class GifPlayer:
     self.num_frames = i
     
   def update(self, screen, time):
-    frame_num = (time/time_per_frame) % self.num_frames
-    self.image.seek(frame_num)
-    for y in range(0, min(self.image.format.height, screen.height)):
-      for x in range(0, min(self.image.format.width, screen.width)):
-        r,g,b = self.image.getpixel(x,y)
+    frame_num = (time/self.time_per_frame) % self.num_frames
+    self.image.seek(int(frame_num))
+    rgb_im = self.image.convert("RGB")
+    for y in range(0, min(self.image.size[1], screen.height)):
+      for x in range(0, min(self.image.size[0], screen.width)):
+        r,g,b = rgb_im.getpixel((x,y))
         screen.write_pixel(x, y, r, g, b)
+
+characters = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+class TextPlayer:
+  def __init__(self, text):
+    self.text = text
+    self.font_sheet = Image.open("../assets/font.png")
+
+  def update(self, screen, time):
+    pos = (time / 0.5) % len(self.text)
+    offset = -8 * pos
+    print(offset)
+    for i in range(0, len(self.text)):
+      char_to_print = self.text[i]
+      self.print_char(screen, char_to_print, offset + i*8, 0)
+      
+  def print_char(self, screen, char, pos_x, pos_y):
+    i = characters.index(char)
+    for y in range(0, 14):
+      for x in range(0, 8):
+        r,g,b,a = self.font_sheet.getpixel((x + (i*8),y))
+        screen.write_pixel(pos_x + x, pos_y + y, a, a, a)
+                                                                                      
+    
+
+class ScreenOffPlayer:
+  def __init__(self):
+    pass
+  def update(self, screen):
+    for y in range(0, screen.height):
+      for x in range(0, screen.width):
+        screen.write_pixel(x, y, 0, 0, 0)
                          
-def wheel(pos):
-  # Input a value 0 to 255 to get a color value.
-  # The colours are a transition r - g - b - back to r.
-  if pos < 0 or pos > 255:
-    r = g = b = 0
-  elif pos < 85:
-    r = int(pos * 3)
-    g = int(255 - pos * 3)
-    b = 0
-  elif pos < 170:
-    pos -= 85
-    r = int(255 - pos * 3)
-    g = 0
-    b = int(pos * 3)
-  else:
-    pos -= 170
-    r = 0
-    g = int(pos * 3)
-    b = int(255 - pos * 3)
-  return (r, g, b) if ORDER in (neopixel.RGB, neopixel.GRB) else (r, g, b, 0)
-
-
-def rainbow_cycle(wait):
-  for j in range(255):
-    for i in range(num_pixels):
-      pixel_index = (i * 256 // num_pixels) + j
-      pixels[i] = wheel(pixel_index & 255)
-    pixels.show()
-    time.sleep(wait)
 
 message_queue = Queue()
 message_process = Process()
 
 def message_loop(message_queue):
-  address = ('localhost', 6000)     # family is deduced to be 'AF_INET'
-  listener = Listener(address, authkey=b'secret password')
-  conn = listener.accept()
-  print('connection accepted from', listener.last_accepted)
-  while True:
-    msg = conn.recv()
-    if msg:
-      message_queue.put(msg)
+  print("Starting message listener")
+  context = zmq.Context()
+  socket = context.socket(zmq.REP)
+  socket.bind("tcp://*:5555")
 
+  while True:
+    #  Wait for next request from client
+    message = socket.recv_json()
+    print("Received request: %s" % message)
+    if message:
+      message_queue.put(message)
+    socket.send(b"OK")
+
+    
 def setup_ipc():
   global message_process
   global message_queue
@@ -146,6 +158,8 @@ def setup_ipc():
 
 MODE_RAINBOW = "rainbow"
 MODE_GIF = "gif"
+MODE_GIF = "text"
+MODE_OFF = "off"
 
 def main():
   global message_queue
@@ -153,7 +167,9 @@ def main():
   
   screen = Screen(10,15)
   rainbow = Rainbow(1.0)
-  #gifplayer = GifPlayer()
+  gifplayer = GifPlayer("../assets/mario.gif", 0.1)
+  textplayer = TextPlayer("Hello world")
+  offplayer = ScreenOffPlayer()
   start_time = time.time()
   mode = MODE_RAINBOW
   
@@ -164,13 +180,17 @@ def main():
       rainbow.update(screen, t)
     elif mode==MODE_GIF:
       gifplayer.update(screen, t)
+    elif mode==MODE_TEXT:
+      textplayer.update(screen, t)
+    elif mode==MODE_OFF:
+      offplayer.update(screen)
     screen.show()
     # do something with msg
     if not message_queue.empty():
       msg = message_queue.get()
       if msg:
         if msg[0] == 'close':
-          conn.close()
+          
           break
         if msg[0]=="mode":
           if len(msg)>1:
