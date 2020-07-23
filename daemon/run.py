@@ -9,7 +9,7 @@ from multiprocessing.connection import Listener
 import zmq
 from game_of_life import GameOfLifePlayer
 from text_player import TextPlayer
-from text_player import GifPlayer
+from gif_player import GifPlayer
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
