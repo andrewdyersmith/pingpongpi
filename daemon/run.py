@@ -7,6 +7,9 @@ from PIL import Image
 from multiprocessing import Process,Queue
 from multiprocessing.connection import Listener
 import zmq
+from game_of_life import GameOfLifePlayer
+from text_player import TextPlayer
+from text_player import GifPlayer
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
@@ -18,8 +21,8 @@ pixel_pin = board.D18
 ORDER = neopixel.RGB
 
 
-WIDTH=15
-HEIGHT=10
+WIDTH=10
+HEIGHT=15
 
 
 class Screen:
@@ -75,55 +78,6 @@ class Rainbow:
       b = int(255 * (math.sin(( x/screen.width+start_position + 2/3) * 2 * math.pi) + 1)/2)
       for y in range(0,screen.height):
         screen.write_pixel(x,y,r,g,b)
-                         
-class GifPlayer:
-  def __init__(self, file, time_per_frame):
-    self.file=file
-    self.time_per_frame=time_per_frame
-    self.image = Image.open(file)
-    i=1
-    try:
-      while 1:
-        self.image.seek(self.image.tell()+1)
-        i += 1
-        # do something to im
-    except EOFError:
-      pass # end of sequence
-    self.num_frames = i
-    
-  def update(self, screen, time):
-    frame_num = (time/self.time_per_frame) % self.num_frames
-    self.image.seek(int(frame_num))
-    rgb_im = self.image.convert("RGB")
-    for y in range(0, min(self.image.size[1], screen.height)):
-      for x in range(0, min(self.image.size[0], screen.width)):
-        r,g,b = rgb_im.getpixel((x,y))
-        screen.write_pixel(x, y, r, g, b)
-
-characters = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-class TextPlayer:
-  def __init__(self, text):
-    self.text = text
-    self.font_sheet = Image.open("../assets/font.png").convert("RGB")
-
-  def update(self, screen, time):
-    screen.clear()
-    pos = (time / 0.5) % len(self.text)
-    offset = -8 * (pos-1)
-    for i in range(0, len(self.text)):
-      char_to_print = self.text[i]
-      self.print_char(screen, char_to_print, offset + i*8, 3)
-      
-  def print_char(self, screen, char, pos_x, pos_y):
-    i = characters.index(char)
-    u = int(i % 16) * 8
-    v = int(i / 16) * 12
-    for y in range(0, 12):
-      for x in range(0, 8):
-        r,g,b = self.font_sheet.getpixel((x + u,y + v))
-        if r>30 or g>30 or b > 30:
-          screen.write_pixel(int(pos_x + x), int(pos_y + y), r, g, b)
-                                                                                      
     
 
 class ScreenOffPlayer:
@@ -173,7 +127,7 @@ def main():
   rainbow = Rainbow(1.0)
   gifplayer = GifPlayer("../assets/isaac.gif", 0.1)
   textplayer = TextPlayer("Hello world")
-  gameoflifeplayer = GameOfLifeplayer(WIDTH,HEIGHT))
+  gameoflifeplayer = GameOfLifePlayer(WIDTH,HEIGHT)
   offplayer = ScreenOffPlayer()
   start_time = time.time()
   mode = MODE_RAINBOW
