@@ -19,10 +19,17 @@
     <h1>Ping Pong Pi</h1>
     <div class="container-fluid">
       <h2>Mode</h2>
-      <button id="mode-rainbow" type="button" class="btn btn-primary">Rainbow</button>
-      <button id="mode-gif" type="button" class="btn btn-primary">Gif</button>
-      <button id="mode-text" type="button" class="btn btn-primary">Text</button>
-      <button id="mode-off" type="button" class="btn btn-primary">Off</button>
+      <div class="btn-group-toggle" data-toggle="buttons">
+	<label class="btn btn-secondary active"> <input id="mode-rainbow" type="radio" checked />Rainbow</label>
+	<label class="btn btn-secondary"> <input id="mode-gif" type="radio" />Gif</label>
+	<label class="btn btn-secondary"> <input id="mode-game-of-life" type="radio" />Game of Life</label>
+	<label class="btn btn-secondary"> <input id="mode-text" type="radio" />Text</label>
+	<label class="btn btn-secondary"> <input id="mode-off" type="radio" />Off</label>
+      </div>
+       <div class="form-group">
+	 <label for="text_value">Password</label>
+	 <input type="text" class="form-control" id="text_value" value="Hello world">
+       </div>
     </div>
   </body>
 </html>

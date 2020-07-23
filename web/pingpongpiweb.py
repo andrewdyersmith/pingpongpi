@@ -1,4 +1,4 @@
-from flask import Flask, render_template, appcontext_tearing_down
+from flask import Flask, render_template, appcontext_tearing_down, request
 from multiprocessing import Process, Queue
 from multiprocessing.connection import Client
 import atexit
@@ -18,7 +18,8 @@ MODE="mode"
 
 @app.route('/mode/<name>', methods=['POST'])
 def mode(name):
-  message_queue.put([MODE,name])
+  text = request.args.get("val", default="", type=str)
+  message_queue.put([MODE,name,text])
   return "\"OK\""
 
 message_queue = Queue()

@@ -6,7 +6,10 @@ $(function() {
 	$.post("/mode/gif");
     });
     $('#mode-text').on('click', function (e) {
-	$.post("/mode/text");
+	$.post("/mode/text?val=" + $("#text_value").val());
+    });
+    $('#mode-game-of-life').on('click', function (e) {
+	$.post("/mode/game-of-life");
     });
     $('#mode-off').on('click', function (e) {
 	$.post("/mode/off");
