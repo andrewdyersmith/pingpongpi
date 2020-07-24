@@ -18,10 +18,12 @@ class GameOfLifePlayer:
   def update(self, screen, time):
     if time<self.last_time+0.1:
       return
+    if time>1000:
+      self.reset()
     self.last_time = time
     
     old_grid = self.grid.copy()
-    no_change=True
+    changes=0
     for i in range(self.width): 
       for j in range(self.height): 
   
@@ -35,17 +37,17 @@ class GameOfLifePlayer:
         # apply Conway's rules
         if old_grid[i][j]  == ON: 
           if (total < 2) or (total > 3):
-            no_change=False
+            changes+=1
             self.grid[i][j] = OFF
         else: 
           if total == 3:
-            no_change=False
+            changes+=1
             self.grid[i][j] = ON
         if self.grid[i][j]==ON:
           screen.write_pixel(i,j,255,255,255)
         else:
           screen.write_pixel(i,j,0,0,0)
-    if no_change:
+    if change<3:
       self.reset()
             
 def main():

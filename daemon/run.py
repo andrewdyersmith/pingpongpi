@@ -10,6 +10,7 @@ import zmq
 from game_of_life import GameOfLifePlayer
 from text_player import TextPlayer
 from gif_player import GifPlayer
+from plasma_player import PlasmaPlayer
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
@@ -57,10 +58,10 @@ class Screen:
     # work out the row direction
     if y % 2==0:
       # left to right
-      self.pixels[int(x + (y * self.width))] = (r,g,b)
+      self.pixels[int(x + (y * self.width))] = (int(r),int(g),int(b))
     else:
       # right to left
-      self.pixels[int(((y+1) * self.width)  - (x+1))] = (r,g,b)
+      self.pixels[int(((y+1) * self.width)  - (x+1))] = (int(r),int(g),int(b))
 
   def clear(self):
     self.pixels.fill(000)
@@ -125,8 +126,9 @@ def main():
   
   screen = Screen(WIDTH,HEIGHT)
   rainbow = Rainbow(1.0)
-  gifplayer = GifPlayer("../assets/isaac.gif", 0.1)
+  gifplayer = GifPlayer("../assets/wilf.gif", 0.1)
   textplayer = TextPlayer("Hello world")
+  plasmaplayer = PlasmaPlayer(WIDTH,HEIGHT)
   gameoflifeplayer = GameOfLifePlayer(WIDTH,HEIGHT)
   offplayer = ScreenOffPlayer()
   start_time = time.time()
@@ -143,6 +145,8 @@ def main():
       textplayer.update(screen, t)
     elif mode==MODE_GAME_OF_LIFE:
       gameoflifeplayer.update(screen, t)
+    elif mode==MODE_PLASMA:
+      plasmaplayer.update(screen, t)
     elif mode==MODE_OFF:
       offplayer.update(screen)
     screen.show()

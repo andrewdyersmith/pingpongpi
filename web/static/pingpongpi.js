@@ -11,6 +11,9 @@ $(function() {
     $('#mode-game-of-life').on('click', function (e) {
 	$.post("/mode/game-of-life");
     });
+    $('#mode-plasma').on('click', function (e) {
+	$.post("/mode/plasma");
+    });
     $('#mode-off').on('click', function (e) {
 	$.post("/mode/off");
     });
