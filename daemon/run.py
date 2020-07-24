@@ -10,6 +10,7 @@ import zmq
 from game_of_life import GameOfLifePlayer
 from text_player import TextPlayer
 from gif_player import GifPlayer
+from fire_player import FirePlayer
 from plasma_player import PlasmaPlayer
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
@@ -118,6 +119,8 @@ MODE_RAINBOW = "rainbow"
 MODE_GIF = "gif"
 MODE_TEXT = "text"
 MODE_GAME_OF_LIFE = "game-of-life"
+MODE_PLASMA = "plasma"
+MODE_FIRE = "fire"
 MODE_OFF = "off"
 
 def main():
@@ -131,6 +134,7 @@ def main():
   plasmaplayer = PlasmaPlayer(WIDTH,HEIGHT)
   gameoflifeplayer = GameOfLifePlayer(WIDTH,HEIGHT)
   offplayer = ScreenOffPlayer()
+  fireplayer = FirePlayer()
   start_time = time.time()
   mode = MODE_RAINBOW
   
@@ -145,6 +149,8 @@ def main():
       textplayer.update(screen, t)
     elif mode==MODE_GAME_OF_LIFE:
       gameoflifeplayer.update(screen, t)
+    elif mode==MODE_FIRE:
+      fireplayer.update(screen, t)
     elif mode==MODE_PLASMA:
       plasmaplayer.update(screen, t)
     elif mode==MODE_OFF:

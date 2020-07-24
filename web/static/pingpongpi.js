@@ -14,6 +14,9 @@ $(function() {
     $('#mode-plasma').on('click', function (e) {
 	$.post("/mode/plasma");
     });
+    $('#mode-fire').on('click', function (e) {
+	$.post("/mode/fire");
+    });
     $('#mode-off').on('click', function (e) {
 	$.post("/mode/off");
     });

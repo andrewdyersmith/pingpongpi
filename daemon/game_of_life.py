@@ -1,6 +1,8 @@
 import random
 import os
 from time import sleep
+import colorsys
+import math
 
 ON=1
 OFF=0
@@ -44,10 +46,14 @@ class GameOfLifePlayer:
             changes+=1
             self.grid[i][j] = ON
         if self.grid[i][j]==ON:
-          screen.write_pixel(i,j,255,255,255)
+          hue = 4.0 + math.sin(i  + time/2) + math.sin(j / 2.0 + math.sqrt(time/4)) \
+                + math.sin((i + j) / 2 + time) + math.sin(math.sqrt(i**2.0 + j**2.0) / 1.275 + time)
+          hsv = colorsys.hsv_to_rgb(hue/6.0, 1, 1)
+          screen.write_pixel(i, j,round(hsv[0] * 255.0),round(hsv[1] * 255.0),round(hsv[2] * 255.0))
+
         else:
           screen.write_pixel(i,j,0,0,0)
-    if change<3:
+    if changes<3:
       self.reset()
             
 def main():
