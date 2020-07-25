@@ -12,6 +12,7 @@ from text_player import TextPlayer
 from gif_player import GifPlayer
 from fire_player import FirePlayer
 from plasma_player import PlasmaPlayer
+from water_player import WaterPlayer
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
@@ -59,10 +60,10 @@ class Screen:
     # work out the row direction
     if y % 2==0:
       # left to right
-      self.pixels[int(x + (y * self.width))] = (int(r),int(g),int(b))
+      self.pixels[int(x + (y * self.width))] = (max(0,min(255,int(r))),max(0,min(255,int(g))),max(0,min(255,int(b))))
     else:
       # right to left
-      self.pixels[int(((y+1) * self.width)  - (x+1))] = (int(r),int(g),int(b))
+      self.pixels[int(((y+1) * self.width)  - (x+1))] = (max(0,min(255,int(r))),max(0,min(255,int(g))),max(0,min(255,int(b))))
 
   def clear(self):
     self.pixels.fill(000)
@@ -121,6 +122,7 @@ MODE_TEXT = "text"
 MODE_GAME_OF_LIFE = "game-of-life"
 MODE_PLASMA = "plasma"
 MODE_FIRE = "fire"
+MODE_WATER = "water"
 MODE_OFF = "off"
 
 def main():
@@ -134,7 +136,8 @@ def main():
   plasmaplayer = PlasmaPlayer(WIDTH,HEIGHT)
   gameoflifeplayer = GameOfLifePlayer(WIDTH,HEIGHT)
   offplayer = ScreenOffPlayer()
-  fireplayer = FirePlayer()
+  fireplayer = FirePlayer(WIDTH,HEIGHT)
+  waterplayer = WaterPlayer(WIDTH,HEIGHT)
   start_time = time.time()
   mode = MODE_RAINBOW
   
@@ -153,6 +156,8 @@ def main():
       fireplayer.update(screen, t)
     elif mode==MODE_PLASMA:
       plasmaplayer.update(screen, t)
+    elif mode==MODE_WATER:
+      waterplayer.update(screen, t)
     elif mode==MODE_OFF:
       offplayer.update(screen)
     screen.show()

@@ -2,11 +2,12 @@ import random
 import os
 from time import sleep
 import colorsys
+import math
 
 class FirePlayer:
   def __init__(self, width, height):
       self.width = width
-      self.height = height
+      self.height = height + 1
       self.fire  = [[0 for y in range(0,self.height)] for x in range(0,self.width)]
 
 
@@ -14,24 +15,24 @@ class FirePlayer:
 
     # randomize the bottom row of the fire buffer
     for x in range(0,self.width):
-        self.fire[x][self.height - 1] = random.random()
-    print(self.fire[0][self.height-1])
+        self.fire[x][self.height-1] = random.random()
     
     # do the fire calculations for every pixel, from top to bottom
-    for y in range(0,self.height-1):
-      for x in range(0,self.width):
-
-        self.fire[x][y] = (self.fire[(x - 1 + self.width) % self.width][(y + 1) % self.height] 
-            + self.fire[(x) % self.width][(y + 1) % self.height] 
-            + self.fire[(x + 1) % self.width][(y + 1) % self.height] 
-            + self.fire[(x) %self.width][(y + 2) % self.height] 
-          ) / 4.13
-   
     for y in range(0,self.height):
       for x in range(0,self.width):
-        hue = 0.33-self.fire[x][y]/3 # 0-0.33 is red to yellow
-        lightness = self.fire[x][y]
+
+        self.fire[x][y] = (self.fire[(x - 1 + self.width) % self.width][(y + 1) % self.height]
+                                       + self.fire[(x) % self.width][(y + 1) % self.height]
+                                       + self.fire[(x + 1) % self.width][(y + 1) % self.height]
+                                       + self.fire[(x) %self.width][(y + 2) % self.height]
+                                     ) / 5.6
+        
+    for y in range(0,self.height):
+      for x in range(0,self.width):
+        hue = self.fire[x][y]/5 # 0-0.33 is red to yellow
+        lightness = min(1.0,self.fire[x][y]*((y+5)/(self.height)))
         col = colorsys.hsv_to_rgb(hue,1,lightness)
+
         screen.write_pixel(x,y,256*col[0],256*col[1],256*col[2])
 
 """
@@ -55,7 +56,7 @@ def main():
   screen = FakeScreen(10,10)
   for i in range(0,100):
     gameplayer.update(screen,i)
-    screen.show()
+#    screen.show()
     sleep(0.2)
 
 if __name__ == "__main__":

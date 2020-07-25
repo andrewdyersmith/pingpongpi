@@ -17,6 +17,9 @@ $(function() {
     $('#mode-fire').on('click', function (e) {
 	$.post("/mode/fire");
     });
+    $('#mode-water').on('click', function (e) {
+	$.post("/mode/water");
+    });
     $('#mode-off').on('click', function (e) {
 	$.post("/mode/off");
     });

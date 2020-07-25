@@ -7,6 +7,9 @@ class FakeScreen:
     self.width = width
     self.height = height
     
+  def write_pixel_tuple(self, x,y,c):
+    self.write_pixel(x,y,c[0],c[1],c[2])
+    
   def write_pixel(self, x,y,r,g,b):
     if x < 0 or y < 0 or x >= self.width or y >= self.height:
       # don't write outside bounds
