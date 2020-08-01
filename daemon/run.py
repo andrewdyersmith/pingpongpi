@@ -12,6 +12,7 @@ from text_player import TextPlayer
 from gif_player import GifPlayer
 from fire_player import FirePlayer
 from plasma_player import PlasmaPlayer
+from camera_player import CameraPlayer
 from water_player import WaterPlayer
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
@@ -123,6 +124,7 @@ MODE_GAME_OF_LIFE = "game-of-life"
 MODE_PLASMA = "plasma"
 MODE_FIRE = "fire"
 MODE_WATER = "water"
+MODE_CAMERA = "camera"
 MODE_OFF = "off"
 
 def main():
@@ -131,12 +133,13 @@ def main():
   
   screen = Screen(WIDTH,HEIGHT)
   rainbow = Rainbow(1.0)
-  gifplayer = GifPlayer("../assets/wilf.gif", 0.1)
+  gifplayer = GifPlayer("../assets/isaac.gif", 0.1)
   textplayer = TextPlayer("Hello world")
   plasmaplayer = PlasmaPlayer(WIDTH,HEIGHT)
   gameoflifeplayer = GameOfLifePlayer(WIDTH,HEIGHT)
   offplayer = ScreenOffPlayer()
   fireplayer = FirePlayer(WIDTH,HEIGHT)
+  camera_player = CameraPlayer(0.1)
   waterplayer = WaterPlayer(WIDTH,HEIGHT)
   start_time = time.time()
   mode = MODE_RAINBOW
@@ -158,6 +161,8 @@ def main():
       plasmaplayer.update(screen, t)
     elif mode==MODE_WATER:
       waterplayer.update(screen, t)
+    elif mode==MODE_CAMERA:
+      camera_player.update(screen, t)
     elif mode==MODE_OFF:
       offplayer.update(screen)
     screen.show()
@@ -173,6 +178,11 @@ def main():
             mode = msg[1]
             if mode==MODE_TEXT and len(msg)>2:
               textplayer.text = msg[2]
+            if mode==MODE_CAMERA:
+              camera_player.start()
+            elif camera_player.running():
+              # camera was running, but now it shouldn't
+              camera_player.stop()
   message_process.join()
 
     

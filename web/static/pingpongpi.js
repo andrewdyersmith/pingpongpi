@@ -20,6 +20,9 @@ $(function() {
     $('#mode-water').on('click', function (e) {
 	$.post("/mode/water");
     });
+    $('#mode-camera').on('click', function (e) {
+	$.post("/mode/camera");
+    });
     $('#mode-off').on('click', function (e) {
 	$.post("/mode/off");
     });
