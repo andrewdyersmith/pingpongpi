@@ -2,6 +2,8 @@ import os
 
 FAKE_COLORS = [" ","░","▒","▓"]
 class FakeScreen:
+  """ Pretends to be a screen for quickly checking the plugin looks roughly ok
+      without having to deploy to the screen."""
   def __init__(self, width, height):
     self.pixels = [[(0,0,0) for y in range(0,height)] for x in range(0,width)]
     self.width = width

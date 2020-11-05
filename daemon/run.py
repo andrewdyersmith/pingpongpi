@@ -15,6 +15,10 @@ from plasma_player import PlasmaPlayer
 from camera_player import CameraPlayer
 from water_player import WaterPlayer
 
+###########################################
+# Config                                  #
+###########################################
+
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
 pixel_pin = board.D18
@@ -25,11 +29,17 @@ pixel_pin = board.D18
 ORDER = neopixel.RGB
 
 
+# Screen size
 WIDTH=10
 HEIGHT=15
 
+##########################################
+#  End config                            #
+##########################################
 
 class Screen:
+  """Represents the Neopixel array screen."""
+  
   def __init__(self, width, height):
     self.width=width
     self.height=height
@@ -42,6 +52,7 @@ class Screen:
 
 
   def show(self):
+    """ Dump the pixel values to the neopixels."""
     self.pixels.show()
     
   def write_pixel(self,x,y,r,g,b):
@@ -54,6 +65,7 @@ class Screen:
     /
     \____________________
     """
+    
     if x < 0 or y < 0 or x >= self.width or y >= self.height:
       # don't write outside bounds
       return
@@ -70,6 +82,7 @@ class Screen:
     self.pixels.fill(000)
 
 class Rainbow:
+  """ Simple test effect."""
   def __init__(self, frequency):
     """ frequency is number of loops through the whole rainbow per second."""
     self.frequency=frequency
@@ -85,12 +98,14 @@ class Rainbow:
     
 
 class ScreenOffPlayer:
+  """Used to turn the screen off."""
   def __init__(self):
     pass
   def update(self, screen):
     for y in range(0, screen.height):
       for x in range(0, screen.width):
         screen.write_pixel(x, y, 0, 0, 0)
+    time.sleep(2)
                          
 
 message_queue = Queue()
@@ -117,6 +132,9 @@ def setup_ipc():
   message_process = Process(target=message_loop, args=(message_queue,))
   message_process.start()
 
+###
+# Mode types
+###
 MODE_RAINBOW = "rainbow"
 MODE_GIF = "gif"
 MODE_TEXT = "text"
@@ -180,7 +198,7 @@ def main():
               textplayer.text = msg[2]
             if mode==MODE_CAMERA:
               camera_player.start()
-            elif camera_player.running():
+            elif camera_player.running:
               # camera was running, but now it shouldn't
               camera_player.stop()
   message_process.join()

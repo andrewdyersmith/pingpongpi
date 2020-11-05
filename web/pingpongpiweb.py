@@ -1,3 +1,6 @@
+# Ping Pong Pi web UI running on flask.
+# Uses zmq to speak to daemon controlling screen.
+
 from flask import Flask, render_template, appcontext_tearing_down, request
 from multiprocessing import Process, Queue
 from multiprocessing.connection import Client
@@ -6,8 +9,6 @@ import time
 import zmq
 
 app = Flask(__name__)
-
-
 
 
 @app.route('/')
@@ -49,8 +50,7 @@ def stop_message_loop():
     message_process.terminate()
 
 atexit.register(stop_message_loop)
-
-    
+ 
 @app.before_first_request
 def setup_ipc():
   global message_process

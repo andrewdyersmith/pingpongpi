@@ -8,10 +8,6 @@ import cv2
 import numpy
 from time import sleep
 from PIL import Image, ImageEnhance
-
-import pathlib
-DIR = pathlib.Path(__file__).parent.absolute()
-
 """
 class ImageProcessor(threading.Thread):
   def __init__(self, owner):
@@ -104,27 +100,17 @@ class ProcessOutput(object):
       proc.terminated = True
       proc.join()
 """
-triggered=0
+
 class ProcessOutput(picamera.array.PiRGBAnalysis):
   def __init__(self, camera):
     super().__init__(camera)
     self.next_image=None
-    #self.back_sub = cv2.createBackgroundSubtractorMOG2()
-    # Initialize the parameters
-    self.confThreshold = 0.5  #Confidence threshold
-    self.maskThreshold = 0.3  # Mask threshold
-    textGraph = DIR + "/models/mask_rcnn_inception_v2_coco_2018_01_28.pbtxt";
-    modelWeights = DIR + "/models/mask_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb";
-    self.net = cv2.dnn.readNetFromTensorflow(modelWeights, textGraph);
-    self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-    self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+    self.back_sub = cv2.createBackgroundSubtractorMOG2()
 
+    
   def analyse(self, array):
-    global triggered
-    cropped_array = array[0:100,35:110]
-    #im_output = self.back_sub.apply(array)
-    im_output = cropped_array
-    self.next_image=cv2.resize(im_output,(10,15))
+    im_output = self.back_sub.apply(array)
+    self.next_image=im_output
                                 
                           
 class CameraPlayer:
@@ -152,8 +138,6 @@ class CameraPlayer:
       with picamera.PiCamera(resolution=(160,120)) as camera:
         self.camera_processor = ProcessOutput(camera)
         camera.zoom=(0.2,0.3,0.6,0.45)
-        camera.contrast=50
-        camera.awb_mode='incandescent'
         camera.start_preview()
         time.sleep(2)
         camera.start_recording(self.camera_processor , format='rgb')
@@ -167,22 +151,19 @@ class CameraPlayer:
     if self.camera_processor and not self.camera_processor.next_image is None:
       current_image = self.camera_processor.next_image
       self.camera_processor.next_image = None
-      for y in range(0, min(current_image.shape[0], screen.height)):
-        for x in range(0, min(current_image.shape[1], screen.width)):
-          pix = current_image[y, x]
+
+      for y in range(0, min(current_image.shape[1], screen.height)):
+        for x in range(0, min(current_image.shape[0], screen.width)):
+          pix = current_image[9-x,y]
           #r,g,b = colorsys.hsv_to_rgb(pix[0],pix[1],pix[2])
-          screen.write_pixel(x, y, pix[0],pix[1],pix[2])#r, g, b)
+          screen.write_pixel(x, y, pix,pix,pix)#r, g, b)
 
 def main():
-  print("Camera player")
   from fake_screen import FakeScreen
   camera_player = CameraPlayer(0.1)
   screen = FakeScreen(10,15)
-  print("Starting camera")
   camera_player.start()
-  i =0
-  while True:
-    i += 1
+  for i in range(0,28):
     camera_player.update(screen,i/10)
     screen.show()
     sleep(0.1)
