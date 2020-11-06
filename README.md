@@ -1,5 +1,6 @@
 # Ping Pong Pi
 ![demo gif](demo.gif)
+
 A system enabling a Raspberry Pi to drive a wall of addressable LEDs to display interesting images.
 
 ## Software Installation
