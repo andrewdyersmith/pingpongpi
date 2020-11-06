@@ -21,12 +21,14 @@ Navigate to your pi in your web browser, and you should see the various options 
 1 - Build a case
 
 2 - Fit the neopixels in it. In particular they need to be laid out left->right/right->left in alternating rows, like this:
-`
-   ------------------------\
-      ______________________/
-     /
-     \______________________ etc....
- `
+
+``` 
+   ------------------------\   
+     ______________________/ 
+    /     
+    \______________________ etc....
+```
+
 3 - Use a guide like this https://learn.adafruit.com/neopixels-on-raspberry-pi to wire it to your Pi
 
 ## Writing plugins
